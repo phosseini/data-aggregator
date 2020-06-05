@@ -153,23 +153,26 @@ class WikiAggregator:
             current_page = []
             counter = 0
             db = SQLite(self.db_path)
-            with open(parent_path + '/data/wiki.tsv', 'wt') as out_file:
-                tsv_writer = csv.writer(out_file, delimiter='\t')
-                for line in wiki_file:
-                    if line == "\n" and len(current_page) != 0:
-                        title = current_page[0].replace('\n', '').replace('\t', '').replace(':', '')
-                        url = current_page[1].replace('\n', '').replace('\t', '')
-                        page_id = current_page[2].replace('\n', '').replace('\t', '')
-                        context = ' '.join(current_page[3:]).replace('\n', '')
-                        if title != "" and context != "" and url != "" and page_id != "":
-                            tsv_writer.writerow([page_id, title, url, context])
-                            # uncomment if we want to write articles in the SQLite db
-                            db.insert_wiki_page(page_id, title, context, '')
-                        current_page = []
-                        counter += 1
-                    else:
-                        if line != "\n":
-                            current_page.append(line)
+            for line in wiki_file:
+                if line == "\n":
+                    if len(current_page) > 3 and \
+                            current_page[2].replace('\n', '').isdigit() and \
+                            current_page[1].startswith("http"):
+                        try:
+                            title = current_page[0].replace('\n', '').replace('\t', '').replace(':', '')
+                            url = current_page[1].replace('\n', '').replace('\t', '')
+                            page_id = current_page[2].replace('\n', '').replace('\t', '')
+                            context = ' '.join(current_page[3:]).replace('\n', '')
+                            if title != "" and context != "" and url != "" and page_id != "":
+                                db.insert_wiki_page(page_id, title, context, '')
+                            counter += 1
+                        except Exception as e:
+                            print("[aggregator-log] {}".format(e))
+                            pass
+                    current_page = []
+                else:
+                    if line != "\n":
+                        current_page.append(line)
 
     def read_pages_table(self, n_category_samples=30):
         # ========================================================
