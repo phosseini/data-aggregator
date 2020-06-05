@@ -21,3 +21,4 @@ Article 2 context
 [new line]
 ...
 ```
+4. Now, by calling the `create_wiki_db_v3()` method in [wiki_aggregator.py](data-aggregator/wiki_aggregator.py), a table of all wikipedia pages in `wiki.txt`, named `pages`, will be created in a database named `wiki`.
